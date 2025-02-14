@@ -1,5 +1,5 @@
 const jwt = require('jsonwebtoken');
-const userModel = require('..- /models');
+const userModel = require('../models/users');
 
 const auth = roles => async(req, res, next)=>{
   const token = req.headers['authorization'];
@@ -15,7 +15,7 @@ const auth = roles => async(req, res, next)=>{
     if(!userFind){
       return res.status(404).json({message: "El usuario no existe"});
     };
-    if (roles.includes(userFind.rol)){
+    if (roles.includes(userFind.rol) || roles.length == 0){
       next();
     } else {
         res.status(409);

@@ -1,4 +1,4 @@
-const chatsModal = require("../models/chat");
+const chatsModal = require("../models/chats");
 
 const createChat =  (req, res) =>{
     try{

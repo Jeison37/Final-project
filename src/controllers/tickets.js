@@ -1,5 +1,29 @@
 const ticketsModel = require("../models/tickets");
 
+const getTicketsAndLikes = async (req, res) => {
+    try {
+        const tickets = await ticketsModel.aggregate([
+            {
+                $lookup: {
+                    from: "Likes_tickets",
+                    localField: "_id",
+                    foreignField: "id_ticket",
+                    as: "likes",
+                },
+                $lookup: {
+                    from: "Responses",
+                    localField: "_id",
+                    foreignField: "id_ticket",
+                    as: "responses",
+                },
+            },
+        ]);
+        res.status(200).json(tickets);
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+    }
+};
+
 const getTickets = async (req, res) => {
     try {
         const tickets = await ticketsModel.find();
