@@ -11,13 +11,27 @@ const getUsers = async (req, res) => {
 
 const createUser = async (req, res) => {
   try {
-    const { nombre, apellido, email, password, telefono, rol } = req.body;
+    const { nombre, apellido, email, password, username, direccion, rol } = req.body;
+
+    // Se revisa si el username ya existe en la base de datos
+    const usernameExists = await userModel.findOne({ username });
+    if (usernameExists) {
+      return res.status(409).json({ message: "El nombre de usuario ya esta usado" });
+    }
+
+    // Se revisa si el email ya existe en la base de datos
+    const emailExists = await userModel.findOne({ email });
+    if (emailExists) {
+      return res.status(409).json({ message: "El email ya esta usado" });
+    }
+
+    // Se crea el usuario
     const user = await userModel.create({
       nombre,
       apellido,
       email,
       password: await userModel.encryptPassword(password),
-      telefono,
+      username, direccion,
       rol,
     });
     res.status(201).json(user);
@@ -29,13 +43,27 @@ const createUser = async (req, res) => {
 const updateUser = async (req, res) => {
   try {
     const { id } = req.params;
-    const { nombre, apellido, email, password, telefono, rol } = req.body;
+    const { nombre, apellido, email, password, username, direccion, rol } = req.body;
+
+    // Se revisa si el username ya existe en la base de datos
+    const usernameExists = await userModel.findOne({ username });
+    if (usernameExists) {
+      return res.status(409).json({ message: "El nombre de usuario ya esta usado" });
+    }
+
+    // Se revisa si el email ya existe en la base de datos
+    const emailExists = await userModel.findOne({ email });
+    if (emailExists) {
+      return res.status(409).json({ message: "El email ya esta usado" });
+    }
+
+    // Se actualiza el usuario
     const user = await userModel.findByIdAndUpdate(id, {
       nombre,
       apellido,
       email,
       password: await userModel.encryptPassword(password),
-      telefono,
+      username, direccion,
       rol,
     });
     res.status(200).json(user);

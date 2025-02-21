@@ -1,58 +1,58 @@
-const responseModal = require("../models/responses");
+const commentModal = require("../models/comments");
 
-const getResponses = async (req, res) => {
+const getComments = async (req, res) => {
     try {
-        const responses = await responseModal.find();
-        res.status(200).json(responses);
+        const comments = await commentModal.find();
+        res.status(200).json(comments);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-const createResponse = async (req, res) => {
+const createComment = async (req, res) => {
     try {
         const { id_ticket, id_usuario, contenido, imagen } = req.body;
-        const response = await responseModal.create({
+        const comment = await commentModal.create({
             id_ticket,
             id_usuario,
             contenido,
             imagen,
         });
-        res.status(201).json(response);
+        res.status(201).json(comment);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-const updateResponse = async (req, res) => {
+const updateComment = async (req, res) => {
     try {
         const { id } = req.params;
         const { id_ticket, id_usuario, contenido, imagen } = req.body;
-        const response = await responseModal.findByIdAndUpdate(id, {
+        const comment = await commentModal.findByIdAndUpdate(id, {
             id_ticket,
             id_usuario,
             contenido,
             imagen,
         });
-        res.status(200).json(response);
+        res.status(200).json(comment);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
-const deleteResponse = async (req, res) => {
+const deleteComment = async (req, res) => {
     try {
         const { id } = req.params;
-        const response = await responseModal.findByIdAndDelete(id);
-        res.status(200).json(response);
+        const comment = await commentModal.findByIdAndDelete(id);
+        res.status(200).json(comment);
     } catch (error) {
         res.status(500).json({ message: error.message });
     }
 };
 
 module.exports = {
-    getResponses,
-    createResponse,
-    updateResponse,
-    deleteResponse,
+    getComments,
+    createComment,
+    updateComment,
+    deleteComment,
 };

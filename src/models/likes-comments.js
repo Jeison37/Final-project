@@ -1,10 +1,10 @@
 const mongoose = require("mongoose");
 
-const LikesResponseSchema = new mongoose.Schema(
+const LikesCommentSchema = new mongoose.Schema(
   {
     id_respuesta: {
         type: mongoose.Schema.Types.ObjectId,
-        ref: "Responses", 
+        ref: "Comments", 
       required: true,
     },
     id_usuario: {
@@ -16,4 +16,4 @@ const LikesResponseSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = moongoose.model("LikesResponses", LikesResponseSchema);
+module.exports = moongoose.model("LikesComments", LikesCommentSchema);

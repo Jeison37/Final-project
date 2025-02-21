@@ -7,7 +7,7 @@ const { dbConnect } = require('./src/config/mongo');
 const path = require('path');
 dbConnect(); 
 
-const PORT = process.env.PORT || 3002; 
+const PORT = process.env.PORT || 3000; 
 app.use(cors()); 
 app.use(express.json()); 
 

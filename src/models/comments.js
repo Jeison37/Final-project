@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const ResponseSchema = new mongoose.Schema({
+const CommentSchema = new mongoose.Schema({
     id_ticket: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'Tickets', 
@@ -21,4 +21,4 @@ const ResponseSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = mongoose.model("Responses", ResponseSchema);
+module.exports = mongoose.model("Comments", CommentSchema);

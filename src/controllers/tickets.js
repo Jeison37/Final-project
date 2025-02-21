@@ -11,10 +11,10 @@ const getTicketsAndLikes = async (req, res) => {
                     as: "likes",
                 },
                 $lookup: {
-                    from: "Responses",
+                    from: "Comments",
                     localField: "_id",
                     foreignField: "id_ticket",
-                    as: "responses",
+                    as: "comments",
                 },
             },
         ]);

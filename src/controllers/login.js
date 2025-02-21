@@ -7,7 +7,7 @@ const login = async (req, res) => {
         const { email, password } = req.body;
         const user = await userModel.One({ email });
         if (!user) {
-            return res.status(404).json({ message: "User not found" });
+            return res.status(404).json({ message: "Usuario no encontrado" });
         }
         // Se verifica si el usuario está bloqueado
         if (user.fechaBloqueo){
@@ -17,7 +17,7 @@ const login = async (req, res) => {
                 user.updateOne({$set: {intentosFallidos: 0, fechaBloqueo: null}});
             } else{
 
-                return res.status(401).json({ message: "User blocked" });
+                return res.status(401).json({ message: "Usuario bloqueado, espera 5 minutos" });
                 
             }
         }
@@ -30,7 +30,7 @@ const login = async (req, res) => {
         else {
             user.updateOne({$set: {fechaBloqueo: Date()}});
         }   
-            return res.status(401).json({ message: "Invalid credentials" });
+            return res.status(401).json({ message: "Credenciales invalidas" });
         }
         const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
             expiresIn: "1h",

@@ -11,6 +11,12 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    username: {
+      type: String,
+      required: true,
+      trim: true,
+      unique: true,
+    },
     email: {
       type: String,
       required: true,
@@ -18,10 +24,6 @@ const UserSchema = new mongoose.Schema(
       unique: true,
     },
     password: {
-      type: String,
-      required: true,
-    },
-    telefono: {
       type: String,
       required: true,
     },
@@ -33,15 +35,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    estado: {
-      type: Boolean,
-      default: false,
-    },
     direccion: {
-      type: String,
-      required: true,
-    },
-    pais: {
       type: String,
       required: true,
     },
