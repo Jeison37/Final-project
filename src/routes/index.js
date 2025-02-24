@@ -1,21 +1,25 @@
-require('dotenv').config(); 
-const express = require('express'); 
-const cors = require('cors'); 
-const app = express(); 
-const { dbConnect } = require('./config/mongo'); 
-const path = require('path');
-dbConnect(); 
+const express = require('express');
+const router = express.Router();
+const fs = require('fs'); // Para interactuar con el sistema de archivos
 
-const PORT = process.env.PORT || 3002; 
-app.use(cors()); 
-app.use(express.json()); 
+const pathRouter = `${__dirname}`; // Es una variable global en NodeJs que representa la ruta del directoria actual en la que se encuentrar el archivo
 
+const removeExtension = (filename) =>{
+  return filename.split('.').shift(); // Este metodo elimina y devuelve el primer elemento del array. Por ejemplo
+  // users.js ['users', 'js'] = ["users"];
+};
 
-app.use('/images', express.static(path.join(__dirname, 'images')));
-
-app.use('/api/', require('./app/routes'));
-
-app.listen(PORT, ()=>{
-  console.log("La api esta lista...");
-  console.log(`Servidor corriento en http://localhost:${PORT}`);
+fs.readdirSync(pathRouter).filter((file)=>{
+  // Vamos a leer de forma sincrona el directoria actual y filtrar solo los archivos que termine en .js
+  const archivoSinExtension = removeExtension(file);
+  const skip = ['index'].includes(archivoSinExtension);
+  if(!skip){
+    router.use(`/${archivoSinExtension}`, require(`./${archivoSinExtension}`));
+  }
 });
+
+router.get('*', (req,res)=>{
+  res.status(404).json({error: "Ruta no encontrada"});
+});
+
+module.exports = router;
