@@ -3,9 +3,9 @@ const router = express.Router();
 
 const { auth } = require('../middleware/auth');
 
-const { getTicketsAndLikes, getTicket, createTicket, updateTicket, deleteTicket, getTickets } = require("../controllers/tickets")
+const { getTicketsAllData, getTicket, createTicket, updateTicket, deleteTicket, getTickets } = require("../controllers/tickets")
 
-router.get('/tickets/main', auth([]) , getTicketsAndLikes);
+router.get('/tickets/main', auth([]) , getTicketsAllData);
 
 router.get('/tickets', auth([]) , getTickets);
 

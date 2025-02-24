@@ -1,6 +1,6 @@
 const ticketsModel = require("../models/tickets");
 
-const getTicketsAndLikes = async (req, res) => {
+const getTicketsAllData = async (req, res) => {
     try {
         const tickets = await ticketsModel.aggregate([
             {
@@ -10,13 +10,35 @@ const getTicketsAndLikes = async (req, res) => {
                     foreignField: "id_ticket",
                     as: "likes",
                 },
+            },
+            {
+                
                 $lookup: {
                     from: "Comments",
                     localField: "_id",
                     foreignField: "id_ticket",
-                    as: "comments",
+                    as: "commentarios",
                 },
             },
+            {
+                
+                $lookup: {
+                    from: "Usuarios",
+                    localField: "id_usuario",
+                    foreignField: "_id",
+                    as: "informante",
+                },
+            },
+            {
+                
+                $lookup: {
+                    from: "Usuarios",
+                    localField: "id_tecnico",
+                    foreignField: "_id",
+                    as: "tecnico",
+                },
+            }
+            
         ]);
         res.status(200).json(tickets);
     } catch (error) {
@@ -45,7 +67,7 @@ const getTicket = async (req, res) => {
 
 const createTicket = async (req, res) => {
     try {
-        const { id_usuario, id_tecnico, titulo, descripcion, estado, imagen, visibilidad } = req.body;
+        const { id_usuario, titulo, descripcion, imagen, visibilidad } = req.body;
         const ticket = await ticketsModel.create({
             id_usuario,
             titulo,
@@ -89,6 +111,7 @@ const deleteTicket = async (req, res) => {
 };
 
 module.exports = {
+    getTicketsAllData,
     getTickets,
     getTicket,
     createTicket,

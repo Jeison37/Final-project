@@ -29,7 +29,7 @@ const TicketSchema = new mongoose.Schema(
       required: true,
     },
     visibilidad: {
-      type: String,
+      type: Boolean,
       required: true,
     },
   },
