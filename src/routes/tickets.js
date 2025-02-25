@@ -5,16 +5,16 @@ const { auth } = require('../middlewares/auth');
 
 const { getTicketsAllData, getTicket, createTicket, updateTicket, deleteTicket, getTickets } = require("../controllers/tickets")
 
-router.get('/tickets/main', auth([]) , getTicketsAllData);
+router.get('/main', auth([]) , getTicketsAllData);
 
-router.get('/tickets', auth([]) , getTickets);
+router.get('/', auth([]) , getTickets);
 
-router.get('/ticket/:id', auth([]) , getTicket);
+router.get('/:id', auth([]) , getTicket);
 
-router.post('/ticket', auth([]) , createTicket);
+router.post('/', auth([]) , createTicket);
 
-router.put('/ticket/:id', auth([]) , updateTicket);
+router.put('/:id', auth([]) , updateTicket);
 
-router.delete('/ticket/:id', auth([]) , deleteTicket);
+router.delete('/:id', auth([]) , deleteTicket);
 
 module.exports = router;

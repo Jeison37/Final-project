@@ -18,8 +18,8 @@ const auth = roles => async(req, res, next)=>{
     if (roles.includes(userFind.rol) || roles.length == 0){
       next();
     } else {
-        res.status(409);
-        res.send({error: "No tienes permisos"})
+        res.status(409).json({error: "No tienes permisos"});
+        // res.send({error: "No tienes permisos"})
     }
   }catch(error){
     return res.status(500).json({error: error.message});
