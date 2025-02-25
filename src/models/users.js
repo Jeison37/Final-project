@@ -1,4 +1,5 @@
 const mongoose = require("mongoose");
+const bcrypt = require("bcrypt");
 
 const UserSchema = new mongoose.Schema(
   {
@@ -33,7 +34,7 @@ const UserSchema = new mongoose.Schema(
     },
     imagen: {
       type: String,
-      required: true,
+      default: null,
     },
     direccion: {
       type: String,
