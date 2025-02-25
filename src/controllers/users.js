@@ -34,7 +34,12 @@ const createUser = async (req, res) => {
       username, direccion,
       rol,
     });
-    res.status(201).json(user);
+
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        expiresIn: "1d",
+    });
+    
+    res.status(201).json({user, token});
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
