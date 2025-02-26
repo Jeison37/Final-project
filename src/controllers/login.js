@@ -5,7 +5,7 @@ const jwt = require("jsonwebtoken");
 const login = async (req, res) => {
     try {
         const { email, password } = req.body;
-        const user = await userModel.One({ email });
+        const user = await userModel.findOne({ email });
         if (!user) {
             return res.status(404).json({ message: "Usuario no encontrado" });
         }
@@ -21,18 +21,21 @@ const login = async (req, res) => {
                 
             }
         }
-
-        const isMatch = await user.comparePassword(password);
+        // console.log('userModel.comparePassword JWT_KEY', userModel.comparePassword);
+        const isMatch = await userModel.comparePassword(password, user.password);
         if (!isMatch) {
-
+            console.log("Antes del mecanismo")
         // Mecanismo de bloqueo de usuarios
-        if (user.intentos >= 3) user.updateOne({$inc: {intentosFallidos: 1}});
+        if (user.intentosFallidos <= 3) {
+            user.updateOne({$inc: {intentosFallidos: 1}});
+            console.log("Dentro del mecanismo")
+        }
         else {
             user.updateOne({$set: {fechaBloqueo: Date()}});
         }   
-            return res.status(401).json({ message: "Credenciales invalidas" });
+            return res.status(401).json({ message: "Contraseña incorrecta" });
         }
-        const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+        const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, {
             expiresIn: "1d",
         });
         res.status(200).json({ token });

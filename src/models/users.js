@@ -60,4 +60,8 @@ UserSchema.statics.encryptPassword = async (password) => {
   return await bcrypt.hash(password, salt).then((hash) => hash);
 };
 
+UserSchema.statics.comparePassword = async(password, hashPassword)=>{
+  return await bcrypt.compare(password, hashPassword);
+};
+
 module.exports = mongoose.model("Users", UserSchema);

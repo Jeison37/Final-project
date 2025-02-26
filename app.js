@@ -5,6 +5,7 @@ const mongoose = require("mongoose");
 const cors = require('cors');
 const { dbConnect } = require('./src/config/mongo'); 
 const path = require('path');
+const { auth } = require('./src/middlewares/auth');
 dbConnect(); 
 
 const PORT = process.env.PORT || 3000; 
@@ -13,7 +14,7 @@ app.use(express.json());
 
 app.use('/api', require('./src/routes'));
 
-app.get('/api/test', (req, res)=>{
+app.get('/test', auth(["1"]), (req, res)=>{
   res.status(200).json({mensaje: "Testing..."});
 });
 

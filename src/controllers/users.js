@@ -11,7 +11,7 @@ const getUsers = async (req, res) => {
 };
 
 const createUser = async (req, res) => {
-  console.log('Hola :>> ', );
+
   try {
     const { nombre, apellido, email, password, username, direccion, rol } = req.body;
 
@@ -37,7 +37,7 @@ const createUser = async (req, res) => {
       rol,
     });
 
-    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, {
+    const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, {
         expiresIn: "1d",
     });
     
