@@ -2,10 +2,15 @@ const imageModel = require('../models/images');
 const fs = require('fs');
 const path = require('path');
 
+const getImages = async(req, res)=>{
+  const images = await imageModel.find();
+  res.json(images);
+};
+
 const createImage = async(req, res)=>{
   try{
     if(!req.file){
-      return  res.status(404).json({message: "No se envio ninguna imagen"});
+      return  res.status(404).json({message: "No se envio ninguna imagen!"});
     };
     const fullUrl = `${process.env.BASE_URL}/images/${req.file.filename}`;
     //Vamos a guardar la imagen en base de datos
