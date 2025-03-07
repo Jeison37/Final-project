@@ -3,15 +3,20 @@ const router = express.Router();
 
 const { auth } = require('../middlewares/auth');
 
-const { getTicketsAllData, getTicket, createTicket, updateTicket, deleteTicket, getTickets } = require("../controllers/tickets")
+const { getAllTicketData, getTicket, createTicket, updateTicket, deleteTicket, getTickets, changeStatus, assignTechnician } = require("../controllers/tickets");
+const { ROL } = require('../utils/constants');
 
-router.get('/main', auth([]) , getTicketsAllData);
+router.post('/main', auth([]) , getAllTicketData);
 
-router.get('/', auth([]) , getTickets);
+router.get('/main/:id', auth([]) , getTicket);
 
-router.get('/:id', auth([]) , getTicket);
+// router.get('/:id', auth([]) , getTicket);
 
 router.post('/', auth([]) , createTicket);
+
+router.put('/status', auth([ROL.TECHNICAL]) , changeStatus);
+
+router.put('/assign', auth([ROL.TECHNICAL]) , assignTechnician);
 
 router.put('/:id', auth([]) , updateTicket);
 

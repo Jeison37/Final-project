@@ -16,4 +16,4 @@ const LikesCommentSchema = new mongoose.Schema(
   { timestamps: true }
 );
 
-module.exports = moongoose.model("LikesComments", LikesCommentSchema);
+module.exports = mongoose.model("LikesComments", LikesCommentSchema);

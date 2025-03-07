@@ -9,9 +9,9 @@ const auth = roles => async(req, res, next)=>{
   };
   
   try{
-    const decoded = jwt.verify(token, process.env.JWT_KEY);
-    console.log(decoded);
-    const userFind = await userModel.findById(decoded.id);
+    const { _id } = jwt.verify(token, process.env.JWT_KEY);
+    // console.log(decoded);
+    const userFind = await userModel.findById({ _id });
     if(!userFind){
       return res.status(404).json({message: "El usuario no existe"});
     };

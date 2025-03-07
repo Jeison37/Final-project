@@ -29,7 +29,7 @@ const UserSchema = new mongoose.Schema(
       required: true,
     },
     rol: {
-      type: String,
+      type: Number,
       required: true,
     },
     imagen: {
@@ -45,6 +45,10 @@ const UserSchema = new mongoose.Schema(
       default: 0,
     },
     fechaBloqueo: {
+      type: Date,
+      default: null,
+    },
+    premiumFecha: {
       type: Date,
       default: null,
     },

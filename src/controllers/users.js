@@ -1,7 +1,24 @@
+const mongoose = require("mongoose");
 const userModel = require("../models/users");
 const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const path = require('path');
+
+const getUser = async (req, res) => {
+  try {
+    const token = req.headers['authorization'];
+
+  const { _id } = jwt.verify(token, process.env.JWT_KEY);
+  
+  const user = await userModel.findOne({ _id });
+
+  res.status(200).json(user);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+
+}
 
 const getUsers = async (req, res) => {
   try {
@@ -12,50 +29,13 @@ const getUsers = async (req, res) => {
   }
 };
 
-const createUser = async (req, res) => {
-
-  try {
-    const { nombre, apellido, email, password, username, direccion, rol } = req.body;
-
-    // Se revisa si el username ya existe en la base de datos
-    const usernameExists = await userModel.findOne({ username });
-    if (usernameExists) {
-      return res.status(409).json({ message: "El nombre de usuario ya esta usado" });
-    }
-
-    // Se revisa si el email ya existe en la base de datos
-    const emailExists = await userModel.findOne({ email });
-    if (emailExists) {
-      return res.status(409).json({ message: "El email ya esta usado" });
-    }
-
-    // Se crea el usuario
-    const user = await userModel.create({
-      nombre,
-      apellido,
-      email,
-      password: await userModel.encryptPassword(password),
-      username, direccion,
-      rol,
-    });
-
-    const token = jwt.sign({ id: user._id }, process.env.JWT_KEY, {
-        expiresIn: "1d",
-    });
-    
-    res.status(201).json({user, token});
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-};
-
 const updateUser = async (req, res) => {
   try {
-    const { id } = req.params;
-    const { nombre, apellido, email, password, username, direccion, rol } = req.body;
+    const { _id } = jwt.verify(token, process.env.JWT_KEY);
+    const { nombre, apellido, email, username, direccion, rol } = req.body;
 
     // Se revisa si el username ya existe en la base de datos
-    const usernameExists = await userModel.findOne({ username });
+    const usernameExists = await userModel.findOne({ _id });
     if (usernameExists) {
       return res.status(409).json({ message: "El nombre de usuario ya esta usado" });
     }
@@ -71,7 +51,6 @@ const updateUser = async (req, res) => {
       nombre,
       apellido,
       email,
-      password: await userModel.encryptPassword(password),
       username, direccion,
       rol,
     });
@@ -93,14 +72,14 @@ const deleteUser = async (req, res) => {
 
 const addProfilePicture = async(req, res)=>{
   const { token } = req.headers;
-  const { id } = jwt.verify(token, process.env.JWT_KEY);
+  const { _id } = jwt.verify(token, process.env.JWT_KEY);
   try{
     if(!req.file){
       return  res.status(404).json({message: "No se envio ninguna imagen!"});
     };
     const fullUrl = `${process.env.BASE_URL}/images/users/profiles/${req.file.filename}`;
     //Vamos a guardar la imagen en base de datos
-    const user = await userModel.findByIdAndUpdate(id, {
+    const user = await userModel.findByIdAndUpdate(_id, {
       imagen: fullUrl
     });
     res.status(201).json({message: "Imagen guardada", user});
@@ -119,8 +98,8 @@ const addProfilePicture = async(req, res)=>{
 
 module.exports = {
   getUsers,
-  createUser,
   updateUser,
   deleteUser,
-  addProfilePicture
+  addProfilePicture,
+  getUser
 };
