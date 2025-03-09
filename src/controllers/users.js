@@ -31,29 +31,54 @@ const getUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+
+    const token = req.headers['authorization'];
     const { _id } = jwt.verify(token, process.env.JWT_KEY);
     const { nombre, apellido, email, username, direccion, rol } = req.body;
 
-    // Se revisa si el username ya existe en la base de datos
-    const usernameExists = await userModel.findOne({ _id });
-    if (usernameExists) {
-      return res.status(409).json({ message: "El nombre de usuario ya esta usado" });
+    let fullUrl = null;
+
+    if (req.file) {
+      try {
+        fullUrl = `${process.env.BASE_URL}/images/users/profiles/${req.file.filename}`;
+      } catch (error) {
+        const filePath = path.join(__dirname, `../../images/users/profiles/${req.file.filename}`);
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error("Error al eliminar el archivo después del fallo:", err);
+          }
+        });
+        return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
+      }
     }
 
-    // Se revisa si el email ya existe en la base de datos
-    const emailExists = await userModel.findOne({ email });
-    if (emailExists) {
-      return res.status(409).json({ message: "El email ya esta usado" });
+    // Revisamos si el email y el username ya existen en la base de datos
+    const existingUser = await userModel.findOne({
+      $and: [
+        { _id: { $ne: _id } },
+        { $or: [{ username }, { email }] },
+      ],
+    });
+
+    if (existingUser) {
+      if (existingUser.username === username) {
+        return res.status(409).json({ message: "El nombre de usuario ya está en uso" });
+      }
+      if (existingUser.email === email) {
+        return res.status(409).json({ message: "El email ya está en uso" });
+      }
     }
+    
 
     // Se actualiza el usuario
-    const user = await userModel.findByIdAndUpdate(id, {
+    const user = await userModel.findByIdAndUpdate(_id, {
       nombre,
       apellido,
       email,
       username, direccion,
       rol,
-    });
+      imagen: fullUrl
+    },{ new: true });
     res.status(200).json(user);
   } catch (error) {
     res.status(500).json({ message: error.message });

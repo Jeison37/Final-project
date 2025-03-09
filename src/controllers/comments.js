@@ -4,11 +4,11 @@ const jwt = require('jsonwebtoken');
 const getComments = async (req, res) => {
     console.log('getComments');
     try {
-        // const comments = await commentModal.find();
+        const comments = await commentModal.find();
         res.status(200).json(comments);
     } catch (error) {
         console.log('error :>> ', error);
-        res.status(500).json({ message: error.message, a : commentModal.countDocuments() });
+        res.status(404).json({ message: error.message });
     }
 };
 

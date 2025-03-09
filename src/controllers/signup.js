@@ -47,7 +47,7 @@ const createUser = async (req, res) => {
      console.error("error enviando correo", error);
  }
     
-    res.status(200).json({ token , imagen: user.imagen, rol: user.rol});
+    res.status(201).json({ token , imagen: user.imagen, rol: user.rol});
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

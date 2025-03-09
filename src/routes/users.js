@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, addProfilePicture, getUser } = require('../controllers/users');
+const { getUsers, addProfilePicture, getUser, updateUser } = require('../controllers/users');
 const { createUser } = require('../controllers/signup');
 const { login } = require('../controllers/login');
 const { auth } = require('../middlewares/auth');
@@ -22,5 +22,12 @@ router.post('/signup', createUser);
 
 router.get('/profile', getUser);
 
+router.put('/profile', auth([]), (req, res, next)=>{
+  upload.single("imagen")(req,res, next);
+}, updateUser);
+
+// router.put('/profile', auth([]), (req, res, next)=>{
+//   upload.single("imagen")(req,res, next);
+// }, addProfilePicture);
 
 module.exports = router;

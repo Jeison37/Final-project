@@ -4,6 +4,8 @@ const jwt = require('jsonwebtoken');
 const Comment = require("../models/comments");
 const likeTicket = require("../models/likes-ticket");
 
+
+
 const assignTechnician = async (req, res) => {
     try {
         const { id_ticket} = req.body;
@@ -27,22 +29,22 @@ const changeStatus = async (req, res) => {
 }
 
 
-const getAllTicketData = async (req, res) => {
+const getAllTicketData = async (req, res, options) => {
     try {
         const token = req.headers['authorization'];
         const { _id } = jwt.verify(token, process.env.JWT_KEY);
 
-        const { page = 1, limit = 5 } = req.body;
+        // const { page = 1, limit = 5 } = req.body;
 
         // Establecemos las opciones para la paginacion, y el populate para obtener los datos de los usuarios
-        const options = {
-            page, 
-            limit, 
-            populate: [
-              { path: 'id_usuario', select: 'nombre apellido username email imagen' },
-              { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
-            ],
-          };
+        // const options = {
+        //     page, 
+        //     limit, 
+        //     populate: [
+        //       { path: 'id_usuario', select: 'nombre apellido username email imagen' },
+        //       { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
+        //     ],
+        //   };
 
           const result = await ticketsModel.paginate({}, options);
 
@@ -127,12 +129,28 @@ const getTicket = async (req, res) => {
                     from: "comments",
                     localField: "_id",
                     foreignField: "id_ticket",
-                    as: "commentarios",
+                    as: "comentarios",
+                    pipeline: [
+                        {
+                            $lookup: {
+                                from: "users",
+                                localField: "id_usuario",
+                                foreignField: "_id",
+                                as: "usuario",
+                            },
+                        },
+                        {
+                            $unwind: {
+                                path: "$usuario",
+                                preserveNullAndEmptyArrays: true,
+                            },
+                        },
+                    ],
                 },
             },
             {
                 $lookup: {
-                    from: "users", // Colección de usuarios
+                    from: "users", 
                     localField: "id_usuario",
                     foreignField: "_id",
                     as: "informante",
@@ -140,13 +158,13 @@ const getTicket = async (req, res) => {
             },
             {
                 $unwind: {
-                    path: "$usuario",
+                    path: "$informante",
                     preserveNullAndEmptyArrays: true,
                 },
             },
             {
                 $lookup: {
-                    from: "users", // Colección de usuarios
+                    from: "users", 
                     localField: "id_tecnico",
                     foreignField: "_id",
                     as: "tecnico",
