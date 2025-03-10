@@ -1,10 +1,11 @@
 const express = require('express');
 const router = express.Router();
+const jwt = require('jsonwebtoken');
 
 const { getComments, createComment, updateComment, deleteComment } = require('../controllers/comments');
 const { auth } = require('../middlewares/auth');
 
-router.get('/', auth([]) , getComments);
+router.get('/', auth([]), getComments);
 
 router.post('/', auth([]) , createComment);
 

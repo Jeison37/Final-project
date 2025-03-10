@@ -1,20 +1,25 @@
 const commentModal = require("../models/comments");
+const jwt = require('jsonwebtoken');
 
 const getComments = async (req, res) => {
+    console.log('getComments');
     try {
         const comments = await commentModal.find();
         res.status(200).json(comments);
     } catch (error) {
-        res.status(500).json({ message: error.message });
+        console.log('error :>> ', error);
+        res.status(404).json({ message: error.message });
     }
 };
 
 const createComment = async (req, res) => {
     try {
-        const { id_ticket, id_usuario, contenido, imagen } = req.body;
+        const { id_ticket, contenido, imagen = null } = req.body;
+        const token = req.headers['authorization'];
+        const { _id } = jwt.verify(token, process.env.JWT_KEY);
         const comment = await commentModal.create({
             id_ticket,
-            id_usuario,
+            id_usuario : _id,
             contenido,
             imagen,
         });

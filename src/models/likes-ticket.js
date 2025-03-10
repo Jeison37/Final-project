@@ -13,4 +13,4 @@ const LikesTicketSchema = new mongoose.Schema({
     }
 }, { timestamps: true });
 
-module.exports = moongoose.model("LikesTickets", LikesTicketSchema);
+module.exports = mongoose.model("LikesTickets", LikesTicketSchema);
