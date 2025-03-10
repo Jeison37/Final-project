@@ -1,6 +1,5 @@
 const express = require('express');
 const router = express.Router();
-const commentModal = require("../models/comments");
 const jwt = require('jsonwebtoken');
 
 const { getComments, createComment, updateComment, deleteComment } = require('../controllers/comments');

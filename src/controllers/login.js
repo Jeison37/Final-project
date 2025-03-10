@@ -35,8 +35,8 @@ const login = async (req, res) => {
         }   
             return res.status(401).json({ message: "Contraseña incorrecta" });
         }
-        const token = jwt.sign({ _id: user._id }, process.env.JWT_KEY, {
-            expiresIn: "1d",
+        const token = jwt.sign({ _id: user._id, rol: user.rol }, process.env.JWT_KEY, {
+            expiresIn: "4d",
         });
         res.status(200).json({ token , imagen: user.imagen, rol: user.rol});
     } catch (error) {

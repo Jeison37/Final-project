@@ -2,11 +2,10 @@ const mensajeModal = require("../models/messages");
 
 const createMessage = async (req, res) => {
     try {
-        const { id_usuario, id_tecnico, mensaje } = req.body;
+        const { id_usuario,  contenido } = req.body;
         const message = await mensajeModal.create({
             id_usuario,
-            id_tecnico,
-            mensaje,
+            contenido,
         });
         res.status(201).json(message);
     } catch (error) {

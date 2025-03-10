@@ -5,7 +5,6 @@ const Comment = require("../models/comments");
 const likeTicket = require("../models/likes-ticket");
 
 
-
 const assignTechnician = async (req, res) => {
     try {
         const { id_ticket} = req.body;
@@ -34,18 +33,19 @@ const getAllTicketData = async (req, res, options) => {
         const token = req.headers['authorization'];
         const { _id } = jwt.verify(token, process.env.JWT_KEY);
 
-        // const { page = 1, limit = 5 } = req.body;
+        const { page = 1, limit = 5 } = req.body;
 
         // Establecemos las opciones para la paginacion, y el populate para obtener los datos de los usuarios
-        // const options = {
-        //     page, 
-        //     limit, 
-        //     populate: [
-        //       { path: 'id_usuario', select: 'nombre apellido username email imagen' },
-        //       { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
-        //     ],
-        //   };
-
+        const options = {
+            page, 
+            limit, 
+            populate: [
+              { path: 'id_usuario', select: 'nombre apellido username email imagen' },
+              { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
+            ],
+            query: { estado: { $eq: 0 } }
+          };
+console.log('options :>> ', options);
           const result = await ticketsModel.paginate({}, options);
 
           // Obtenemos el numero de likes y comentarios para cada ticket y se lo asignamos a cada ticket
@@ -65,6 +65,7 @@ const getAllTicketData = async (req, res, options) => {
           );
 
           res.status(200).json({
+            user: _id,
             ...result,
             docs: ticketsWithCounts,
           });
@@ -145,6 +146,14 @@ const getTicket = async (req, res) => {
                                 preserveNullAndEmptyArrays: true,
                             },
                         },
+                        {
+                            $lookup: {
+                                from: "likes_comments",
+                                localField: "_id",
+                                foreignField: "id_comentario",
+                                as: "usuario",
+                            },
+                        },
                     ],
                 },
             },
@@ -193,6 +202,22 @@ const createTicket = async (req, res) => {
         const { titulo, descripcion, imagen, visibilidad } = req.body;
         const token = req.headers['authorization'];
         const decoded = jwt.verify(token, process.env.JWT_KEY);
+
+    let fullUrl = null;
+
+    if (req.file) {
+      try {
+        fullUrl = `${process.env.BASE_URL}/images/users/tickets/${req.file.filename}`;
+      } catch (error) {
+        const filePath = path.join(__dirname, `../../images/users/tickets/${req.file.filename}`);
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error("Error al eliminar el archivo después del fallo:", err);
+          }
+        });
+        return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
+      }
+    }
 
         const ticket = await ticketsModel.create({
             id_usuario: decoded._id,

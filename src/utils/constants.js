@@ -7,5 +7,10 @@ module.exports = {
     STATUS:{
         PENDING:0,
         COMPLETED:1,
+    },
+    WS:{
+        CREATE_CHAT:0,
+        TECHNICIAN_CONNECTED:1,
+        MESSAGE:2
     }
   };
