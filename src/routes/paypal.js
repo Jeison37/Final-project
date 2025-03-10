@@ -4,7 +4,10 @@ const router = express.Router();
 const { updateUser } = require('../controllers/users');
 
 router.post("/create-order", async (req, res) => {
-    const { user, amount } = req.query;
+        const token = req.headers['authorization'];
+        const { _id } = jwt.verify(token, process.env.JWT_KEY);
+        const user = await userModel.findOne({ _id });
+    const {  amount = 5} = req.body;
     try {
       const order = {
         intent: "CAPTURE",

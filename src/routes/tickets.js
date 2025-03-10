@@ -15,7 +15,11 @@ const option = (page = 1, limit = 5, status) => {
         ],
     }
 
-    if (status) options.query = { estado: status };
+    if (status) {
+        const jwt = require('jsonwebtoken');
+        const { _id } = jwt.verify(req.headers['authorization'], process.env.JWT_KEY);
+        options.query = {$and:[{ estado: status}, { id_tecnico: _id}] };
+    }
 
     return options;
 }
@@ -28,7 +32,9 @@ router.get('/main/:id', auth([]) , getTicket);
 
 // router.get('/:id', auth([]) , getTicket);
 
-router.post('/', auth([]) , createTicket);
+router.post('/', auth([]) , (req, res, next)=>{
+    upload.single("imagen")(req,res, next);
+  }, createTicket);
 
 router.put('/status', auth([ROL.TECHNICIAN]) , changeStatus);
 

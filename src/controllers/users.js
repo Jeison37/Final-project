@@ -4,6 +4,28 @@ const jwt = require("jsonwebtoken");
 const fs = require('fs');
 const path = require('path');
 
+// Actualisaremos la fechaPremium del usuario un mes sumado a la fecha actual
+const updateDatePremium = async (req, res) => {
+  try {
+    const token = req.headers['authorization'];
+
+  const { _id } = jwt.verify(token, process.env.JWT_KEY);
+
+  const date = new Date();
+  date.setMonth(date.getMonth() + 1);
+  
+
+  const user = await userModel.findByIdAndUpdate(_id, {
+    fechaPremium: date
+  });
+  res.status(200).json(user);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+  
+}
+
 const getUser = async (req, res) => {
   try {
     const token = req.headers['authorization'];
