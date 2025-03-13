@@ -1,8 +1,96 @@
 const mongoose = require("mongoose");
-const ticketsModel = require("../models/tickets");
+const ticketModel = require("../models/tickets");
+const userModel = require("../models/users");
+const likesTicketModel = require("../models/likes-ticket");
 const jwt = require('jsonwebtoken');
 const Comment = require("../models/comments");
 const likeTicket = require("../models/likes-ticket");
+const { STATUS, ROL } = require("../utils/constants");
+
+const getTicketsCounts = async (req, res) => {
+    const token = req.headers['authorization'];
+    const { _id } = jwt.verify(token, process.env.JWT_KEY);
+    try {
+        if (mongoose.isValidObjectId(_id)) {
+            objectId = mongoose.Types.ObjectId.createFromHexString(_id);
+        } else {
+            return res.status(400).json({ error: "ID inválido" });
+        }
+    } catch (error) {
+        console.log('error :>> ', error);
+        return res.status(400).json({ error: "ID inválido" });
+    }
+
+    try {
+        const all = await ticketModel.countDocuments({ id_tecnico: objectId });
+        const pending = await ticketModel.countDocuments({ estado: STATUS.PENDING, id_tecnico: objectId });
+        const completed = await ticketModel.countDocuments({ estado: STATUS.COMPLETED, id_tecnico: objectId });
+        const count = { all, pending, completed };
+        // console.log('count :>> ', count);
+        res.status(200).json({ count });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
+
+
+const getTechniciansCounts = async (req, res) => {
+    try {
+        // const technicianList = await ticketModel.aggregate([
+        //     {
+        //         $match: {estado: 1, id_tecnico: {$ne: null} }
+        //     },
+        //     {
+        //         $group: {
+        //             _id: "$id_tecnico",
+        //             total: { $sum: 1}
+        //         },
+                 
+        //     },
+        //      {
+        //         $lookup: {  
+        //             from: "users",  
+        //             localField: "_id",  
+        //             foreignField: "_id",  
+        //             as: "tecnico"  
+        //         },
+        //     },
+        //     {
+        //         $unwind: "$tecnico"  
+        //     },
+        //     {
+        //         $sort: {total: -1}
+        //     },
+        
+        // ]);
+        const technicianCount = await userModel.countDocuments({ rol: ROL.TECHNICIAN });
+
+        const technicians = await userModel.find({rol: ROL.TECHNICIAN});
+
+        const technicianList = await Promise.all(
+            technicians.map( async technician =>{
+
+                const total = await ticketModel.countDocuments({ id_tecnico: technician._id})
+
+                return {
+                    total,
+                    ...technician.toObject()
+                }
+            })
+        )
+
+        technicianList.sort( (a,b) => b.total - a.total )
+
+        const bestTechnician = technicianList[0];
+
+        const worstTechnician = technicianList[technicianList.length - 1];
+
+
+        res.status(200).json({ technicianList, technicianCount, bestTechnician, worstTechnician });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+}
 
 
 const assignTechnician = async (req, res) => {
@@ -10,7 +98,7 @@ const assignTechnician = async (req, res) => {
         const { id_ticket} = req.body;
         const token = req.headers['authorization'];
         const { _id } = jwt.verify(token, process.env.JWT_KEY);
-        const ticket = await ticketsModel.findByIdAndUpdate(id_ticket, { id_tecnico : _id });
+        const ticket = await ticketModel.findByIdAndUpdate(id_ticket, { id_tecnico : _id });
         res.status(200).json(ticket);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -20,7 +108,8 @@ const assignTechnician = async (req, res) => {
 const changeStatus = async (req, res) => {
     try {
         const { id_ticket, estado } = req.body;
-        const ticket = await ticketsModel.findByIdAndUpdate(id_ticket, { estado });
+        // console.log('estado :>> ', estado);
+        const ticket = await ticketModel.findByIdAndUpdate(id_ticket, { estado });
         res.status(200).json(ticket);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -28,7 +117,7 @@ const changeStatus = async (req, res) => {
 }
 
 
-const getAllTicketData = async (req, res, options) => {
+const getAllTicketData = async (req, res, status) => {
     try {
         const token = req.headers['authorization'];
         const { _id } = jwt.verify(token, process.env.JWT_KEY);
@@ -43,10 +132,29 @@ const getAllTicketData = async (req, res, options) => {
               { path: 'id_usuario', select: 'nombre apellido username email imagen' },
               { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
             ],
-            query: { estado: { $eq: 0 } }
           };
-console.log('options :>> ', options);
-          const result = await ticketsModel.paginate({}, options);
+
+          let query = {};
+          
+          if (status !== undefined) {
+            // console.log('status :>> ', status);
+            try {
+                if (mongoose.isValidObjectId(_id)) {
+                    let objectId = mongoose.Types.ObjectId.createFromHexString(_id);
+                } else {
+                    return res.status(400).json({ error: "ID inválido" });
+                }
+            } catch (error) {
+                console.log('error :>> ', error);
+                return res.status(400).json({ error: "ID inválido" });
+            }
+
+            if (status !== STATUS.ALL) query = { estado: status, id_tecnico: objectId };
+            else query = { id_tecnico: objectId };
+          }
+            
+        //   console.log('query :>> ', query);
+          const result = await ticketModel.paginate(query, options);
 
           // Obtenemos el numero de likes y comentarios para cada ticket y se lo asignamos a cada ticket
           const ticketsWithCounts = await Promise.all(
@@ -74,13 +182,13 @@ console.log('options :>> ', options);
         //   page: page,
         //   limit: 2
         // }
-        // ticketsModel.paginate({},options, (err, docs) =>{
+        // ticketModel.paginate({},options, (err, docs) =>{
         //   res.send({
         //     items: docs
         //   })
         // })
 
-        // const tickets = await ticketsModel.find()
+        // const tickets = await ticketModel.find()
         // .populate('id_usuario', 'nombre apellido username email imagen') 
         // .populate('id_tecnico', 'nombre apellido username email imagen'); 
 
@@ -91,7 +199,7 @@ console.log('options :>> ', options);
 
 const getTickets = async (req, res) => {
     try {
-        const tickets = await ticketsModel.find();
+        const tickets = await ticketModel.find();
         res.status(200).json(tickets);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -114,8 +222,10 @@ const getTicket = async (req, res) => {
         } catch (error) {
             return res.status(400).json({ error: "ID inválido" });
         }
+
+        const userLike = await likesTicketModel.countDocuments({ id_ticket: objectId });
         
-        const [ticket] = await ticketsModel.aggregate([
+        const [ticket] = await ticketModel.aggregate([
             { $match: { _id: objectId } },
             {
                 $lookup: {
@@ -151,7 +261,7 @@ const getTicket = async (req, res) => {
                                 from: "likes_comments",
                                 localField: "_id",
                                 foreignField: "id_comentario",
-                                as: "usuario",
+                                as: "likes",
                             },
                         },
                     ],
@@ -191,7 +301,7 @@ const getTicket = async (req, res) => {
             return res.status(404).json({ error: "Ticket no encontrado" });
         }
 
-        res.status(200).json(ticket);
+        res.status(200).json({ticket, liked: userLike > 0});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -204,10 +314,11 @@ const createTicket = async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_KEY);
 
     let fullUrl = null;
-
+        console.log('req.file :>> ', req.file);
     if (req.file) {
       try {
         fullUrl = `${process.env.BASE_URL}/images/users/tickets/${req.file.filename}`;
+        console.log('fullUrl :>> ', fullUrl);
       } catch (error) {
         const filePath = path.join(__dirname, `../../images/users/tickets/${req.file.filename}`);
         fs.unlink(filePath, (err) => {
@@ -218,12 +329,12 @@ const createTicket = async (req, res) => {
         return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
       }
     }
-
-        const ticket = await ticketsModel.create({
+        console.log('imagen :>> ', imagen);
+        const ticket = await ticketModel.create({
             id_usuario: decoded._id,
             titulo,
             descripcion,
-            imagen,
+            imagen: fullUrl,
             visibilidad,
         });
         res.status(201).json(ticket);
@@ -238,7 +349,7 @@ const updateTicket = async (req, res) => {
         const token = req.headers['authorization'];
         const { _id } = jwt.verify(token, process.env.JWT_KEY);
 
-        const ticket = await ticketsModel.findByIdAndUpdate(_id, {
+        const ticket = await ticketModel.findByIdAndUpdate(_id, {
             id_tecnico,
             titulo,
             descripcion,
@@ -254,7 +365,7 @@ const updateTicket = async (req, res) => {
 const deleteTicket = async (req, res) => {
     try {
         const { id } = req.params;
-        const ticket = await ticketsModel.findByIdAndDelete(id);
+        const ticket = await ticketModel.findByIdAndDelete(id);
         res.status(200).json(ticket);
     } catch (error) {
         res.status(500).json({ error: error.message });
@@ -269,5 +380,7 @@ module.exports = {
     updateTicket,
     deleteTicket,
     changeStatus,
-    assignTechnician
+    assignTechnician,
+    getTicketsCounts,
+    getTechniciansCounts
 };

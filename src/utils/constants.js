@@ -1,3 +1,5 @@
+const { all } = require("axios");
+
 module.exports = {
     ROL:{
         USER:0,
@@ -7,6 +9,7 @@ module.exports = {
     STATUS:{
         PENDING:0,
         COMPLETED:1,
+        ALL: 2
     },
     WS:{
         CREATE_CHAT:0,

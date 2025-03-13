@@ -1,9 +1,9 @@
-const paymentsModel = require("../models/payments")
+const paymentModel = require("../models/payments")
 
 const createPayment = async (req, res) => {
     try {
         const { id_usuario, monto, moneda, metodo_pago, estado } = req.body;
-        const payment = await paymentsModel.create({
+        const payment = await paymentModel.create({
             id_usuario,
             monto,
             moneda,
@@ -18,7 +18,7 @@ const createPayment = async (req, res) => {
 
 const getPayments = async (req, res) => {
     try {
-        const payments = await paymentsModel.find();
+        const payments = await paymentModel.find();
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ message: error.message });
@@ -28,7 +28,7 @@ const getPayments = async (req, res) => {
 const getUserPayments = async (req, res) => {
     try {
         const { id } = req.params;
-        const payments = await paymentsModel.find({ id_usuario: id });
+        const payments = await paymentModel.find({ id_usuario: id });
         res.status(200).json(payments);
     } catch (error) {
         res.status(500).json({ message: error.message });

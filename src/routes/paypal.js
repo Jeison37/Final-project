@@ -1,14 +1,17 @@
 const { default: axios } = require('axios');
 const express = require('express');
 const router = express.Router();
-const { updateUser } = require('../controllers/users');
+const jwt = require('jsonwebtoken');
+const { updateDatePremium } = require('../controllers/users');
+
 
 router.post("/create-order", async (req, res) => {
-        const token = req.headers['authorization'];
-        const { _id } = jwt.verify(token, process.env.JWT_KEY);
-        const user = await userModel.findOne({ _id });
-    const {  amount = 5} = req.body;
-    try {
+  try {
+    const token = req.headers['authorization'];
+
+    const { _id } = jwt.verify(token, process.env.JWT_KEY);
+
+  const {  amount = 5} = req.body;
       const order = {
         intent: "CAPTURE",
         purchase_units: [
@@ -23,7 +26,7 @@ router.post("/create-order", async (req, res) => {
           brand_name: "plataforma_web",
           landing_page: "NO_PREFERENCE",
           user_action: "PAY_NOW",
-          return_url: `http://localhost:3002/capture-order?user=${user}`,
+          return_url: `http://localhost:3002/capture-order?user=${_id}`,
           cancel_url: "http://localhost:3002/cancel-order",
         },
       };
@@ -77,6 +80,22 @@ router.post("/create-order", async (req, res) => {
         }
       );
       if(response.data){
+
+
+  try {
+
+  const date = new Date();
+  date.setMonth(date.getMonth() + 1);
+
+  const user = await userModel.findByIdAndUpdate(id, {
+    fechaPremium: date
+  });
+
+  if (user) console.log("User updated successfully");
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
         console.log(response.data);
         return res.json({message:"Pago confirmado", monto_pagado: response.data.purchase_units[0].payments.captures[0].amount.value});
       }
