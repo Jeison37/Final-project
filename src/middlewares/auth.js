@@ -3,7 +3,6 @@ const userModel = require('../models/users');
 
 const auth = roles => async(req, res, next)=>{
   const token = req.headers['authorization'];
-  // console.log(token);
   try{
     if(!token){
       return res.status(404).json({message: "Token no enviado"});
@@ -15,11 +14,12 @@ const auth = roles => async(req, res, next)=>{
 
     const { _id } = jwt.verify(token, process.env.JWT_KEY);
     // console.log(decoded);
-    const userFind = await userModel.findById({ _id });
+    const userFind = await userModel.findById( _id );
     if(!userFind){
       return res.status(404).json({message: "El usuario no existe"});
     };
     if (roles.includes(userFind.rol) || roles.length == 0){
+      req.user = userFind;
       next();
     } else {
         res.status(409).json({error: "No tienes permisos"});

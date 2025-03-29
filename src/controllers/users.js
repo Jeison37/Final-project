@@ -8,13 +8,9 @@ const path = require('path');
 
 const getUser = async (req, res) => {
   try {
-    const token = req.headers['authorization'];
-
-  const { _id } = jwt.verify(token, process.env.JWT_KEY);
-  
-  const user = await userModel.findOne({ _id });
-
-  res.status(200).json(user);
+    
+    const user = req.user;
+    res.status(200).json(user);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -33,16 +29,21 @@ const getUsers = async (req, res) => {
 
 const updateUser = async (req, res) => {
   try {
+    console.log("Starting updateUser function");
+    const _id = req.user._id;
+    console.log(`User ID from request: ${_id}`);
 
-    const token = req.headers['authorization'];
-    const { _id } = jwt.verify(token, process.env.JWT_KEY);
     const { nombre, apellido, email, username, direccion, rol } = req.body;
+    console.log("Request body:", { nombre, apellido, email, username, direccion, rol });
 
     let fullUrl = null;
+
+    console.log('req.file :>> ', req.file);
 
     if (req.file) {
       try {
         fullUrl = `${process.env.BASE_URL}/images/users/profiles/${req.file.filename}`;
+        console.log(`Image uploaded, URL: ${fullUrl}`);
       } catch (error) {
         const filePath = path.join(__dirname, `../../images/users/profiles/${req.file.filename}`);
         fs.unlink(filePath, (err) => {
@@ -50,11 +51,12 @@ const updateUser = async (req, res) => {
             console.error("Error al eliminar el archivo después del fallo:", err);
           }
         });
+        console.error("Error processing image:", error.message);
         return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
       }
     }
 
-    // Revisamos si el email y el username ya existen en la base de datos
+    console.log("Checking for existing user with email or username");
     const existingUser = await userModel.findOne({
       $and: [
         { _id: { $ne: _id } },
@@ -63,26 +65,31 @@ const updateUser = async (req, res) => {
     });
 
     if (existingUser) {
+      console.log("Existing user found:", existingUser);
       if (existingUser.username === username) {
+        console.log("Username already in use");
         return res.status(409).json({ message: "El nombre de usuario ya está en uso" });
       }
       if (existingUser.email === email) {
+        console.log("Email already in use");
         return res.status(409).json({ message: "El email ya está en uso" });
       }
     }
-    
 
-    // Se actualiza el usuario
+    console.log("Updating user information in the database");
     const user = await userModel.findByIdAndUpdate(_id, {
       nombre,
       apellido,
       email,
-      username, direccion,
+      username,
+      direccion,
       rol,
       imagen: fullUrl
-    },{ new: true });
+    }, { new: true });
+    console.log("User updated successfully:", user);
     res.status(200).json(user);
   } catch (error) {
+    console.error("Error in updateUser function:", error.message);
     res.status(500).json({ message: error.message });
   }
 };

@@ -15,8 +15,7 @@ const getComments = async (req, res) => {
 const createComment = async (req, res) => {
     try {
         const { id_ticket, contenido, imagen = null } = req.body;
-        const token = req.headers['authorization'];
-        const { _id } = jwt.verify(token, process.env.JWT_KEY);
+        const _id = req.user._id;
         const comment = await commentModal.create({
             id_ticket,
             id_usuario : _id,

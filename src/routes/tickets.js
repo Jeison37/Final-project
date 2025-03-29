@@ -14,8 +14,6 @@ router.post('/main/all', auth([ROL.TECHNICIAN, ROL.ADMIN]) , (req, res) =>  getA
 
 router.get('/main/:id', auth([]) , getTicket);
 
-// router.get('/:id', auth([]) , getTicket);
-
 router.post('/', auth([]) , (req, res, next)=>{
     upload.single("imagen")(req,res, next);
   }, createTicket);
@@ -28,7 +26,9 @@ router.get('/dashboard', auth([]) , getTicketsCounts);
 
 router.get("/dashboard/admin", auth([ROL.ADMIN]) , getTechniciansCounts);
 
-router.post('/:id', auth([]) , updateTicket);
+router.put('/:id', auth([]) , (req, res, next) => {
+  upload.single("imagen")(req, res, next); 
+},updateTicket);
 
 router.delete('/:id', auth([]) , deleteTicket);
 

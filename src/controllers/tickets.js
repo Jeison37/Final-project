@@ -8,27 +8,16 @@ const likeTicket = require("../models/likes-ticket");
 const { STATUS, ROL } = require("../utils/constants");
 
 const getTicketsCounts = async (req, res) => {
-    const token = req.headers['authorization'];
-    const { _id } = jwt.verify(token, process.env.JWT_KEY);
+    const _id = req.user._id;
     try {
-        if (mongoose.isValidObjectId(_id)) {
-            objectId = mongoose.Types.ObjectId.createFromHexString(_id);
-        } else {
-            return res.status(400).json({ error: "ID inválido" });
-        }
-    } catch (error) {
-        console.log('error :>> ', error);
-        return res.status(400).json({ error: "ID inválido" });
-    }
-
-    try {
-        const all = await ticketModel.countDocuments({ id_tecnico: objectId });
-        const pending = await ticketModel.countDocuments({ estado: STATUS.PENDING, id_tecnico: objectId });
-        const completed = await ticketModel.countDocuments({ estado: STATUS.COMPLETED, id_tecnico: objectId });
+        const all = await ticketModel.countDocuments({ id_tecnico: _id });
+        const pending = await ticketModel.countDocuments({ estado: STATUS.PENDING, id_tecnico: _id });
+        const completed = await ticketModel.countDocuments({ estado: STATUS.COMPLETED, id_tecnico: _id });
         const count = { all, pending, completed };
-        // console.log('count :>> ', count);
+
         res.status(200).json({ count });
     } catch (error) {
+
         res.status(500).json({ error: error.message });
     }
 }
@@ -96,8 +85,7 @@ const getTechniciansCounts = async (req, res) => {
 const assignTechnician = async (req, res) => {
     try {
         const { id_ticket} = req.body;
-        const token = req.headers['authorization'];
-        const { _id } = jwt.verify(token, process.env.JWT_KEY);
+        const _id = req.user._id;
         const ticket = await ticketModel.findByIdAndUpdate(id_ticket, { id_tecnico : _id });
         res.status(200).json(ticket);
     } catch (error) {
@@ -119,15 +107,15 @@ const changeStatus = async (req, res) => {
 
 const getAllTicketData = async (req, res, status) => {
     try {
-        const token = req.headers['authorization'];
-        const { _id } = jwt.verify(token, process.env.JWT_KEY);
+        const _id = req.user._id;
 
         const { page = 1, limit = 5 } = req.body;
 
         // Establecemos las opciones para la paginacion, y el populate para obtener los datos de los usuarios
         const options = {
             page, 
-            limit, 
+            limit,
+            sort: { createdAt: -1 },
             populate: [
               { path: 'id_usuario', select: 'nombre apellido username email imagen' },
               { path: 'id_tecnico', select: 'nombre apellido username email imagen' },
@@ -137,20 +125,9 @@ const getAllTicketData = async (req, res, status) => {
           let query = {};
           
           if (status !== undefined) {
-            // console.log('status :>> ', status);
-            try {
-                if (mongoose.isValidObjectId(_id)) {
-                    let objectId = mongoose.Types.ObjectId.createFromHexString(_id);
-                } else {
-                    return res.status(400).json({ error: "ID inválido" });
-                }
-            } catch (error) {
-                console.log('error :>> ', error);
-                return res.status(400).json({ error: "ID inválido" });
-            }
 
-            if (status !== STATUS.ALL) query = { estado: status, id_tecnico: objectId };
-            else query = { id_tecnico: objectId };
+            if (status !== STATUS.ALL) query = { estado: status, id_tecnico: _id };
+            else query = { id_tecnico: _id };
           }
             
         //   console.log('query :>> ', query);
@@ -208,6 +185,9 @@ const getTickets = async (req, res) => {
 
 const getTicket = async (req, res) => {
     try {
+        const _id = req.user._id;
+        
+
         const { id } = req.params; 
         
         let objectId;   
@@ -223,13 +203,13 @@ const getTicket = async (req, res) => {
             return res.status(400).json({ error: "ID inválido" });
         }
 
-        const userLike = await likesTicketModel.countDocuments({ id_ticket: objectId });
+        const userLike = await likesTicketModel.countDocuments({ id_ticket: objectId, id_usuario: _id });
         
         const [ticket] = await ticketModel.aggregate([
             { $match: { _id: objectId } },
             {
                 $lookup: {
-                    from: "likes_tickets",
+                    from: "likestickets",
                     localField: "_id",
                     foreignField: "id_ticket",
                     as: "likes",
@@ -254,14 +234,6 @@ const getTicket = async (req, res) => {
                             $unwind: {
                                 path: "$usuario",
                                 preserveNullAndEmptyArrays: true,
-                            },
-                        },
-                        {
-                            $lookup: {
-                                from: "likes_comments",
-                                localField: "_id",
-                                foreignField: "id_comentario",
-                                as: "likes",
                             },
                         },
                     ],
@@ -301,17 +273,19 @@ const getTicket = async (req, res) => {
             return res.status(404).json({ error: "Ticket no encontrado" });
         }
 
-        res.status(200).json({ticket, liked: userLike > 0});
+        res.status(200).json({ticket, user: _id, liked: userLike > 0});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
 };
 
+// MARK: createTicket
 const createTicket = async (req, res) => {
     try {
         const { titulo, descripcion, imagen, visibilidad } = req.body;
-        const token = req.headers['authorization'];
-        const decoded = jwt.verify(token, process.env.JWT_KEY);
+        const _id = req.user._id;
+        
+        
 
     let fullUrl = null;
         console.log('req.file :>> ', req.file);
@@ -329,9 +303,8 @@ const createTicket = async (req, res) => {
         return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
       }
     }
-        console.log('imagen :>> ', imagen);
         const ticket = await ticketModel.create({
-            id_usuario: decoded._id,
+            id_usuario: _id,
             titulo,
             descripcion,
             imagen: fullUrl,
@@ -345,18 +318,35 @@ const createTicket = async (req, res) => {
 
 const updateTicket = async (req, res) => {
     try {
-        const { id_tecnico, titulo, descripcion, estado, imagen, visibilidad } = req.body;
-        const token = req.headers['authorization'];
-        const { _id } = jwt.verify(token, process.env.JWT_KEY);
+        const { titulo, descripcion, imagen, visibilidad } = req.body;
+        const { id }= req.params;
+  
 
-        const ticket = await ticketModel.findByIdAndUpdate(_id, {
-            id_tecnico,
+    let fullUrl = imagen;
+
+    if (req.file) {
+      try {
+        fullUrl = `${process.env.BASE_URL}/images/users/tickets/${req.file.filename}`;
+        console.log('fullUrl :>> ', fullUrl);
+      } catch (error) {
+        const filePath = path.join(__dirname, `../../images/users/tickets/${req.file.filename}`);
+        fs.unlink(filePath, (err) => {
+          if (err) {
+            console.error("Error al eliminar el archivo después del fallo:", err);
+          }
+        });
+        return res.status(500).json({ message: "Error al procesar la imagen", error: error.message });
+      }
+    }
+    console.log('imagen :>> ', req.body, titulo, descripcion, imagen, visibilidad);
+
+        const ticket = await ticketModel.findByIdAndUpdate( id ,{
             titulo,
             descripcion,
-            estado,
+            imagen: fullUrl,
             visibilidad,
         });
-        res.status(200).json(ticket);
+        res.status(201).json(ticket);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }

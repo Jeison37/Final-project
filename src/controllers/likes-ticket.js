@@ -13,9 +13,8 @@ const getLikes = async (req, res) => {
 const toggleLike = async (req, res) => {
   try {
     const { id_ticket } = req.body;
-    const token = req.headers["authorization"];
-    const { _id } = jwt.verify(token, process.env.JWT_KEY);
-    const id_usuario = _id;
+    
+    const id_usuario = req.user._id; 
 
     const existingLike = await likesTicketModel.findOne({
       id_ticket,

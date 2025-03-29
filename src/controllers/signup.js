@@ -31,7 +31,7 @@ const createUser = async (req, res) => {
     });
 
     const token = jwt.sign({ _id: user._id , rol: user.rol}, process.env.JWT_KEY, {
-        expiresIn: "4d",
+        expiresIn: "1y",
     });
 
   const mailOptions = {

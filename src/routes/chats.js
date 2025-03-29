@@ -1,12 +1,19 @@
 const express = require('express');
 const router = express.Router();
+const { auth } = require('../middlewares/auth');
+const { premium } = require('../middlewares/premium');
+const { getChatRequests, createChat, addTechnician, deleteChat, getChat } = require('../controllers/chats');
+const { ROL } = require('../utils/constants');
 
-const { getChatRequests, createChat, addTechnician } = require('../controllers/chats');
+router.get('/', auth([ROL.TECHNICIAN]) , getChatRequests);
 
-router.get('/', getChatRequests);
+router.get('/:id', auth([]), premium() , getChat);
 
-router.post('/', createChat);
 
-router.put('/', addTechnician);
+router.post('/', auth([]) , premium(), createChat);
+
+router.delete('/', auth([]) , premium(), deleteChat);
+
+router.put('/', auth([ROL.TECHNICIAN]) , addTechnician);
 
 module.exports = router;

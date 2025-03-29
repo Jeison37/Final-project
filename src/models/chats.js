@@ -8,8 +8,9 @@ const ChatScheme = mongoose.Schema(
       required: true,
     },
     id_tecnico: {
-      type: String,
-      required: true,
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Users",
+      default: null,
     },
   },
   { timestamps: true }
