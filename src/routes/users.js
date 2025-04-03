@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getUsers, getUser, updateUser } = require('../controllers/users');
+const { getUsers, getUser, updateUser, deleteUser, updateAccount } = require('../controllers/users');
 const { createUser } = require('../controllers/signup');
 const { login } = require('../controllers/login');
 const { auth } = require('../middlewares/auth');
@@ -20,6 +20,8 @@ router.get('/premium', auth([]), premium(), (req,res) =>{
 
 router.post('/login', login);
 
+router.delete("/:id", auth([constants.ROL.ADMIN]) , deleteUser);
+
 router.post('/signup', createUser);
 
 router.get('/profile', auth([]), getUser);
@@ -27,6 +29,10 @@ router.get('/profile', auth([]), getUser);
 router.put('/profile', auth([]), (req, res, next)=>{
   upload.single("imagen")(req,res, next);
 }, updateUser);
+
+router.put('/account/:id/update', auth([constants.ROL.ADMIN]), (req, res, next)=>{
+  upload.single("imagen")(req,res, next);
+}, updateAccount);
 
 // router.put('/profile', auth([]), (req, res, next)=>{
 //   upload.single("imagen")(req,res, next);

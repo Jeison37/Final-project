@@ -9,6 +9,7 @@ router.get('/', auth([ROL.TECHNICIAN]) , getChatRequests);
 
 router.get('/:id', auth([]), premium() , getChat);
 
+router.put('/:id', auth([ROL.TECHNICIAN]), premium() , getChat);
 
 router.post('/', auth([]) , premium(), createChat);
 

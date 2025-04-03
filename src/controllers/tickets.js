@@ -150,6 +150,7 @@ const getAllTicketData = async (req, res, status) => {
           );
 
           res.status(200).json({
+            rol: req.user.rol,
             user: _id,
             ...result,
             docs: ticketsWithCounts,
@@ -273,7 +274,7 @@ const getTicket = async (req, res) => {
             return res.status(404).json({ error: "Ticket no encontrado" });
         }
 
-        res.status(200).json({ticket, user: _id, liked: userLike > 0});
+        res.status(200).json({ticket, rol: req.user.rol, user: _id, liked: userLike > 0});
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -355,6 +356,7 @@ const updateTicket = async (req, res) => {
 const deleteTicket = async (req, res) => {
     try {
         const { id } = req.params;
+        
         const ticket = await ticketModel.findByIdAndDelete(id);
         res.status(200).json(ticket);
     } catch (error) {

@@ -125,6 +125,10 @@ function startWebSocketServer(serverPort) {
                     });
                 }
 
+                if (data.type == WS.CHANGE_STATE) {
+
+                }
+
             } catch (error) {
 
                 console.log('error :>> ', error);

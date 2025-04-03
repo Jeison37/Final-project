@@ -24,6 +24,16 @@ const getChat = async (req, res) => {
   }
 }
 
+const changeStateChat = async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { estado } = req.body;
+    const chat = await chatModal.findByIdAndUpdate(id, { estado }, { new: true });
+    res.status(200).json(chat);
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
+}
 
 const addTechnician = async (req, res) => {
   try {

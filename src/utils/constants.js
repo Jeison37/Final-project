@@ -1,5 +1,3 @@
-const { all } = require("axios");
-
 module.exports = {
     ROL:{
         USER:0,
@@ -17,6 +15,7 @@ module.exports = {
         MESSAGE:2,
         TECHNICIAN_AVAILABLE:3,
         TECHNICIAN_UNAVAILABLE:4,
-
+        CHANGE_STATE:5,
+        LEAVE_CHAT:6
     }
   };

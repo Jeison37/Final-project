@@ -12,6 +12,13 @@ const ChatScheme = mongoose.Schema(
       ref: "Users",
       default: null,
     },
+    estado: {
+      type: Number,
+      min: 0, 
+      max: 2,
+      required: true,
+      default: 0,
+    },
   },
   { timestamps: true }
 );
