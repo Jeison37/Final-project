@@ -2,7 +2,9 @@ const ws = require('ws');
 const jwt = require('jsonwebtoken');
 const axios = require('axios');
 const messageModel = require('../models/messages');
+const chatModel = require('../models/chats');
 const { WS, ROL } = require('../utils/constants');
+const constants = require('../utils/constants');
 const chats = new Map();
 const technicians = new Map();
 
@@ -101,7 +103,7 @@ function startWebSocketServer(serverPort) {
                 }
 
                 if (data.type == WS.MESSAGE) {
-                    console.log('chats :>> ', chats);
+                    // console.log('chats :>> ', chats);
                     const { id_chat,  text_message} = data;
 
                     const chat = chats.get(id_chat);
@@ -126,7 +128,38 @@ function startWebSocketServer(serverPort) {
                 }
 
                 if (data.type == WS.CHANGE_STATE) {
+                    const { id_chat , state } = data;
 
+                    const chat = chats.get(id_chat);
+
+                    const notification = {type: WS.CHANGE_STATE, state}
+
+                    console.log('state :>> ', state);
+
+                    chatModel.findByIdAndUpdate(id_chat, { estado: state }, { new: true }).then(newChat => {
+                        console.log('Chat actualizado:', newChat);
+                        chat.forEach(client => {
+                            if (client.readyState === ws.OPEN) {
+                                client.send(JSON.stringify(notification));
+                            }
+                        });
+                    }).catch((error) => {
+                        console.error('Error al actualizar el chat:', error);
+                    });
+
+
+                }
+
+                if (data.type == WS.LEAVE_CHAT) {
+                    const { id_chat } = data;
+
+                    const chat = chats.get(id_chat);
+
+                    chat.forEach(client => {
+                        if (client.readyState === ws.OPEN) {
+                            client.send(JSON.stringify({ type: WS.LEAVE_CHAT , user: _id }));
+                        }
+                    });
                 }
 
             } catch (error) {
